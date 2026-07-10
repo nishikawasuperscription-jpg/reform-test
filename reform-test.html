@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リフォームイベント ヒアリングフォーム</title>
+</head>
+<body style="margin:0;">
+<!-- リフォームイベント ヒアリングフォーム -->
+<style>
+  #rf-root {
+    --ink: #16233A;
+    --ink-soft: #46586F;
+    --paper: #EEF2F6;
+    --card: #FFFFFF;
+    --line: #C9D2DC;
+    --copper: #B5652E;
+    --copper-soft: #F1DCC8;
+    --sage: #5C8368;
+    --sage-soft: #E1EBE1;
+    --danger: #B4432F;
+    --radius: 10px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    min-height: 100%;
+    padding: 0 0 64px 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #rf-root * { box-sizing: border-box; }
+  #rf-root .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+
+  #rf-root .rf-shell {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 20px 0;
+  }
+
+  /* Header */
+  #rf-root .rf-header {
+    position: relative;
+    padding: 22px 22px 26px;
+    background: var(--ink);
+    border-radius: var(--radius);
+    color: #EDF1F5;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  #rf-root .rf-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
+  }
+  #rf-root .rf-eyebrow {
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--copper-soft);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #rf-root .rf-title {
+    position: relative;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  #rf-root .rf-sub {
+    position: relative;
+    font-size: 13px;
+    color: #B9C4D2;
+    line-height: 1.6;
+  }
+
+  /* progress */
+  #rf-root .rf-progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    margin-top: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  #rf-root .rf-progress-fill {
+    height: 100%;
+    background: var(--copper);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* Section card */
+  #rf-root .rf-section {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 20px 22px;
+    margin-bottom: 16px;
+  }
+  /* blueprint corner registration marks */
+  #rf-root .rf-section::before,
+  #rf-root .rf-section::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--copper);
+    border-left: 2px solid var(--copper);
+    top: -1px; left: -1px;
+    opacity: 0.8;
+  }
+  #rf-root .rf-section::after {
+    left: auto; right: -1px; top: auto; bottom: -1px;
+    border-top: none; border-left: none;
+    border-bottom: 2px solid var(--copper);
+    border-right: 2px solid var(--copper);
+  }
+
+  #rf-root .rf-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  #rf-root .rf-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--copper);
+    border: 1.5px solid var(--copper);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  #rf-root .rf-section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  #rf-root .rf-section-note {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* fields */
+  #rf-root .rf-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  #rf-root .rf-row.single { grid-template-columns: 1fr; }
+  #rf-root .rf-field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  #rf-root .rf-field input[type="text"],
+  #rf-root .rf-field input[type="tel"],
+  #rf-root .rf-field input[type="email"],
+  #rf-root .rf-field input[type="date"],
+  #rf-root .rf-field input[type="number"],
+  #rf-root .rf-field textarea {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-size: 14.5px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #FCFDFE;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #rf-root .rf-field input:focus,
+  #rf-root .rf-field textarea:focus {
+    outline: none;
+    border-color: var(--copper);
+    box-shadow: 0 0 0 3px rgba(181,101,46,0.15);
+  }
+  #rf-root .rf-field textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+  }
+
+  /* chips */
+  #rf-root .rf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #rf-root .rf-chip {
+    border: 1.5px solid var(--line);
+    background: #FCFDFE;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.12s ease;
+    line-height: 1.3;
+  }
+  #rf-root .rf-chip:hover { border-color: var(--copper); }
+  #rf-root .rf-chip.active {
+    background: var(--copper);
+    border-color: var(--copper);
+    color: #fff;
+  }
+  #rf-root .rf-chip.active.alt {
+    background: var(--sage);
+    border-color: var(--sage);
+  }
+
+  /* footer bar */
+  #rf-root .rf-footer {
+    max-width: 720px;
+    margin: 6px auto 0;
+    padding: 0 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  #rf-root .rf-save-btn {
+    flex: 1;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 15px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  #rf-root .rf-save-btn:hover { background: #223350; }
+  #rf-root .rf-save-btn:active { transform: scale(0.99); }
+  #rf-root .rf-save-btn:disabled { opacity: 0.6; cursor: default; }
+
+  #rf-root .rf-list-toggle {
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+    border-radius: 8px;
+    padding: 15px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #rf-root .rf-list-toggle:hover { border-color: var(--copper); color: var(--copper); }
+
+  #rf-root .rf-msg {
+    max-width: 720px;
+    margin: 12px auto 0;
+    padding: 0 20px;
+    font-size: 13px;
+    color: var(--danger);
+    min-height: 18px;
+  }
+
+  /* toast */
+  #rf-root .rf-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #rf-root .rf-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #rf-root .rf-toast .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--sage);
+    flex-shrink: 0;
+  }
+
+  /* list panel */
+  #rf-root .rf-list-panel {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  #rf-root .rf-list-item {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  #rf-root .rf-list-item:hover { border-color: var(--copper); }
+  #rf-root .rf-list-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+  #rf-root .rf-list-name {
+    font-weight: 700;
+    font-size: 14.5px;
+  }
+  #rf-root .rf-list-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  #rf-root .rf-list-tags {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  #rf-root .rf-empty {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 40px 20px;
+  }
+  #rf-root .rf-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    margin-bottom: 4px;
+  }
+  #rf-root .rf-back:hover { color: var(--copper); }
+
+  #rf-root .rf-detail-row {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  #rf-root .rf-detail-row:last-child { border-bottom: none; }
+  #rf-root .rf-detail-label {
+    width: 120px;
+    flex-shrink: 0;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  #rf-root .rf-detail-val { flex: 1; white-space: pre-wrap; word-break: break-word; }
+
+  @media (max-width: 480px) {
+    #rf-root .rf-row { grid-template-columns: 1fr; }
+    #rf-root .rf-title { font-size: 20px; }
+  }
+</style>
+
+<div id="rf-root">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  </style>
+
+  <div class="rf-shell">
+    <div class="rf-header">
+      <div class="rf-eyebrow">RENOVATION EVENT · INTAKE FORM</div>
+      <div class="rf-title">リフォームイベント ヒアリングフォーム</div>
+      <div class="rf-sub">お客様のご希望を伺い、最適なリフォームプランをご提案するための入力フォームです。</div>
+      <div class="rf-progress-track"><div class="rf-progress-fill" id="rf-progress"></div></div>
+    </div>
+  </div>
+
+  <div id="rf-form-view">
+    <div class="rf-shell" id="rf-sections"></div>
+    <div class="rf-msg" id="rf-msg"></div>
+    <div class="rf-footer">
+      <button class="rf-save-btn" id="rf-save">この内容を保存する</button>
+      <button class="rf-list-toggle" id="rf-open-list">保存済み (<span id="rf-count">0</span>)</button>
+    </div>
+  </div>
+
+  <div id="rf-list-view" style="display:none;">
+    <div class="rf-list-panel">
+      <button class="rf-back" id="rf-back-btn">← 入力フォームに戻る</button>
+    </div>
+    <div class="rf-list-panel" id="rf-list-body"></div>
+  </div>
+
+  <div class="rf-toast" id="rf-toast"><span class="dot"></span><span id="rf-toast-text">保存しました</span></div>
+</div>
+
+<script>
+(function() {
+  const root = document.getElementById('rf-root');
+
+  // ---- Schema ----
+  const SECTIONS = [
+    {
+      num: 1, title: '受付情報',
+      fields: [
+        { key: 'visitDate', label: '来場日', type: 'date' },
+        { key: 'receptionNo', label: '受付番号', type: 'text' },
+        { key: 'staff', label: '担当者', type: 'text' },
+        { key: 'venue', label: '会場', type: 'text' },
+      ]
+    },
+    {
+      num: 2, title: 'お客様情報',
+      fields: [
+        { key: 'name', label: 'お名前', type: 'text', full: true, required: true },
+        { key: 'kana', label: 'フリガナ', type: 'text', full: true },
+        { key: 'address', label: 'ご住所', type: 'text', full: true },
+        { key: 'tel', label: '電話番号', type: 'tel', required: true },
+        { key: 'email', label: 'メール', type: 'email' },
+        { key: 'family', label: 'ご家族構成', type: 'text', full: true, placeholder: '例）ご夫婦＋お子様2人／ご両親と同居 など' },
+      ]
+    },
+    {
+      num: 3, title: '現在のお住まい情報',
+      fields: [
+        { key: 'buildingType', label: '建物種別', type: 'chip-single', options: ['戸建て','マンション','その他'] },
+        { key: 'age', label: '築年数', type: 'text', placeholder: '例）築15年' },
+        { key: 'floorArea', label: '延床面積', type: 'text', placeholder: '例）約100㎡（30坪）' },
+        { key: 'structure', label: '構造', type: 'chip-single', options: ['木造','鉄骨','RC','不明'] },
+      ]
+    },
+    {
+      num: 4, title: 'リフォームのきっかけ・目的', note: '複数選択可',
+      fields: [
+        { key: 'motives', label: '', type: 'chip-multi', full: true, options: [
+          '老朽化・設備の不具合','家族構成の変化','耐震性の不安','断熱・省エネ性能の向上',
+          'バリアフリー化','デザイン・雰囲気を一新したい','収納を増やしたい','売却・賃貸に向けた資産価値向上'
+        ]},
+        { key: 'motivesOther', label: 'その他', type: 'text', full: true, placeholder: '上記にない場合はご記入ください' },
+      ]
+    },
+    {
+      num: 5, title: 'リフォームご希望箇所', note: '複数選択可',
+      fields: [
+        { key: 'areas', label: '', type: 'chip-multi', full: true, options: [
+          'キッチン','浴室','トイレ','洗面所','リビング・居室','外壁・屋根','床・内装','収納・クローゼット',
+          '耐震補強','断熱・窓','バリアフリー','外構・エクステリア','水回り全般','全面リフォーム'
+        ]},
+        { key: 'areasOther', label: 'その他', type: 'text', full: true, placeholder: '上記にない場合はご記入ください' },
+      ]
+    },
+    {
+      num: 6, title: 'ご希望内容・イメージ', note: '自由記入',
+      fields: [
+        { key: 'imageText', label: '', type: 'textarea', full: true, rows: 4, placeholder: '色・素材・雰囲気・参考にしたい事例など、自由にご記入ください' },
+      ]
+    },
+    {
+      num: 7, title: 'ご予算・希望時期・資金計画',
+      fields: [
+        { key: 'budget', label: 'ご予算', type: 'chip-single', full: true, options: ['〜100万円','100〜300万円','300〜500万円','500〜1,000万円','1,000万円以上','未定'] },
+        { key: 'timing', label: 'ご希望時期', type: 'chip-single', full: true, options: ['すぐにでも','3ヶ月以内','半年以内','1年以内','時期未定'] },
+        { key: 'financing', label: '資金計画', type: 'chip-multi', full: true, options: ['自己資金','リフォームローン利用予定','ローン相談希望','未定'] },
+      ]
+    },
+    {
+      num: 8, title: 'その他ご要望・気になる点', note: '自由記入',
+      fields: [
+        { key: 'otherRequests', label: '', type: 'textarea', full: true, rows: 3 },
+      ]
+    },
+    {
+      num: 9, title: '担当者記入欄',
+      fields: [
+        { key: 'summary', label: 'ヒアリング内容の要約', type: 'textarea', full: true, rows: 3 },
+        { key: 'nextAction', label: '次回アクション', type: 'chip-single', full: true, options: ['現地調査の設定','見積書の送付','後日電話フォロー','資料送付のみ','対応不要'] },
+        { key: 'followUpDate', label: 'フォロー予定日', type: 'date' },
+      ]
+    },
+  ];
+
+  // ---- State ----
+  let state = {};
+  SECTIONS.forEach(sec => sec.fields.forEach(f => {
+    if (f.type === 'chip-multi') state[f.key] = [];
+    else state[f.key] = '';
+  }));
+
+  const sectionsEl = document.getElementById('rf-sections');
+  const msgEl = document.getElementById('rf-msg');
+
+  function fieldHTML(f) {
+    const wrapClass = 'rf-field' + (f.full ? '' : '');
+    if (f.type === 'chip-single' || f.type === 'chip-multi') {
+      const chips = f.options.map(opt => {
+        return `<button type="button" class="rf-chip" data-key="${f.key}" data-val="${opt}" data-mode="${f.type}">${opt}</button>`;
+      }).join('');
+      return `<div class="${wrapClass}">${f.label ? `<label>${f.label}</label>` : ''}<div class="rf-chips">${chips}</div></div>`;
+    }
+    if (f.type === 'textarea') {
+      return `<div class="${wrapClass}">${f.label ? `<label>${f.label}</label>` : ''}<textarea rows="${f.rows||3}" data-key="${f.key}" placeholder="${f.placeholder||''}"></textarea></div>`;
+    }
+    return `<div class="${wrapClass}"><label>${f.label}${f.required ? ' <span style=\"color:var(--danger)\">*</span>' : ''}</label><input type="${f.type}" data-key="${f.key}" placeholder="${f.placeholder||''}"></div>`;
+  }
+
+  function renderSections() {
+    sectionsEl.innerHTML = SECTIONS.map(sec => {
+      const rows = [];
+      let i = 0;
+      while (i < sec.fields.length) {
+        const f = sec.fields[i];
+        if (f.full) {
+          rows.push(`<div class="rf-row single">${fieldHTML(f)}</div>`);
+          i += 1;
+        } else {
+          const f2 = sec.fields[i+1];
+          if (f2 && !f2.full) {
+            rows.push(`<div class="rf-row">${fieldHTML(f)}${fieldHTML(f2)}</div>`);
+            i += 2;
+          } else {
+            rows.push(`<div class="rf-row single">${fieldHTML(f)}</div>`);
+            i += 1;
+          }
+        }
+      }
+      return `
+        <div class="rf-section">
+          <div class="rf-section-head">
+            <div class="rf-num">${sec.num}</div>
+            <div class="rf-section-title">${sec.title}</div>
+            ${sec.note ? `<div class="rf-section-note">${sec.note}</div>` : ''}
+          </div>
+          ${rows.join('')}
+        </div>`;
+    }).join('');
+
+    // wire inputs
+    sectionsEl.querySelectorAll('input, textarea').forEach(el => {
+      el.addEventListener('input', () => {
+        state[el.dataset.key] = el.value;
+        updateProgress();
+      });
+    });
+    sectionsEl.querySelectorAll('.rf-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        const val = btn.dataset.val;
+        const mode = btn.dataset.mode;
+        if (mode === 'chip-single') {
+          state[key] = state[key] === val ? '' : val;
+          sectionsEl.querySelectorAll(`.rf-chip[data-key="${key}"]`).forEach(b => b.classList.remove('active'));
+          if (state[key]) btn.classList.add('active');
+        } else {
+          const arr = state[key];
+          const idx = arr.indexOf(val);
+          if (idx >= 0) { arr.splice(idx, 1); btn.classList.remove('active'); }
+          else { arr.push(val); btn.classList.add('active'); }
+        }
+        updateProgress();
+      });
+    });
+  }
+
+  function updateProgress() {
+    const total = Object.keys(state).length;
+    let filled = 0;
+    Object.values(state).forEach(v => {
+      if (Array.isArray(v) ? v.length > 0 : String(v).trim() !== '') filled++;
+    });
+    const pct = Math.min(100, Math.round((filled / total) * 100));
+    document.getElementById('rf-progress').style.width = pct + '%';
+  }
+
+  renderSections();
+
+  // ---- Storage ----
+  const countEl = document.getElementById('rf-count');
+
+  async function refreshCount() {
+    try {
+      const res = await window.storage.list('entries:', true);
+      countEl.textContent = (res && res.keys ? res.keys.length : 0);
+    } catch (e) {
+      countEl.textContent = '0';
+    }
+  }
+  refreshCount();
+
+  function showToast(text) {
+    const toast = document.getElementById('rf-toast');
+    document.getElementById('rf-toast-text').textContent = text;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  document.getElementById('rf-save').addEventListener('click', async () => {
+    msgEl.textContent = '';
+    if (!state.name || !String(state.name).trim()) {
+      msgEl.textContent = '「お名前」は必須項目です。ご入力ください。';
+      return;
+    }
+    if (!state.tel || !String(state.tel).trim()) {
+      msgEl.textContent = '「電話番号」は必須項目です。ご入力ください。';
+      return;
+    }
+    const saveBtn = document.getElementById('rf-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '保存中...';
+    const id = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    const entry = Object.assign({}, state, { id, savedAt: new Date().toISOString() });
+    try {
+      const result = await window.storage.set('entries:' + id, JSON.stringify(entry), true);
+      if (!result) throw new Error('save failed');
+      showToast('保存しました');
+      // reset form
+      SECTIONS.forEach(sec => sec.fields.forEach(f => {
+        state[f.key] = f.type === 'chip-multi' ? [] : '';
+      }));
+      renderSections();
+      updateProgress();
+      refreshCount();
+    } catch (e) {
+      msgEl.textContent = '保存に失敗しました。もう一度お試しください。';
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'この内容を保存する';
+  });
+
+  // ---- List view ----
+  const formView = document.getElementById('rf-form-view');
+  const listView = document.getElementById('rf-list-view');
+  const listBody = document.getElementById('rf-list-body');
+
+  async function loadList() {
+    listBody.innerHTML = '<div class="rf-empty">読み込み中...</div>';
+    try {
+      const res = await window.storage.list('entries:', true);
+      const keys = res && res.keys ? res.keys : [];
+      if (keys.length === 0) {
+        listBody.innerHTML = '<div class="rf-empty">まだ保存された回答はありません。</div>';
+        return;
+      }
+      const entries = [];
+      for (const k of keys) {
+        try {
+          const r = await window.storage.get(k, true);
+          if (r) entries.push(JSON.parse(r.value));
+        } catch (e) { /* skip missing */ }
+      }
+      entries.sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
+      listBody.innerHTML = entries.map(e => {
+        const date = e.savedAt ? new Date(e.savedAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+        const tags = [e.budget, e.timing].filter(Boolean).join(' ・ ');
+        return `<div class="rf-list-item" data-id="${e.id}">
+          <div class="rf-list-item-top">
+            <div class="rf-list-name">${escapeHtml(e.name || '（名前未入力）')}</div>
+            <div class="rf-list-date">${date}</div>
+          </div>
+          <div class="rf-list-tags">${escapeHtml(tags || '—')}</div>
+        </div>`;
+      }).join('');
+      listBody.querySelectorAll('.rf-list-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const entry = entries.find(e => e.id === item.dataset.id);
+          if (entry) showDetail(entry);
+        });
+      });
+    } catch (e) {
+      listBody.innerHTML = '<div class="rf-empty">読み込みに失敗しました。</div>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  const LABELS = {};
+  SECTIONS.forEach(sec => sec.fields.forEach(f => { if (f.label) LABELS[f.key] = f.label; }));
+  LABELS.motives = 'きっかけ・目的';
+  LABELS.motivesOther = 'きっかけ（その他）';
+  LABELS.areas = '希望箇所';
+  LABELS.areasOther = '希望箇所（その他）';
+  LABELS.imageText = 'ご希望内容・イメージ';
+  LABELS.otherRequests = 'その他ご要望';
+
+  function showDetail(entry) {
+    const rows = Object.keys(LABELS).map(key => {
+      let val = entry[key];
+      if (Array.isArray(val)) val = val.join('、');
+      if (!val) return '';
+      return `<div class="rf-detail-row"><div class="rf-detail-label">${LABELS[key]}</div><div class="rf-detail-val">${escapeHtml(val)}</div></div>`;
+    }).filter(Boolean).join('');
+    listBody.innerHTML = `
+      <button class="rf-back" id="rf-detail-back">← 一覧に戻る</button>
+      <div class="rf-section">${rows}</div>
+    `;
+    document.getElementById('rf-detail-back').addEventListener('click', loadList);
+  }
+
+  document.getElementById('rf-open-list').addEventListener('click', () => {
+    formView.style.display = 'none';
+    listView.style.display = 'block';
+    loadList();
+  });
+  document.getElementById('rf-back-btn').addEventListener('click', () => {
+    listView.style.display = 'none';
+    formView.style.display = 'block';
+  });
+
+  updateProgress();
+})();
+</script>
+</body></html>
