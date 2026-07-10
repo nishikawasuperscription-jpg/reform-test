@@ -1,0 +1,848 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  #rsv-root {
+    --navy: #1b2230;
+    --navy-deep: #12171f;
+    --panel: #232c3d;
+    --amber: #f0a83e;
+    --amber-dim: #b97e2e;
+    --teal: #4f9d90;
+    --paper: #efe8da;
+    --paper-dim: #cfc6b3;
+    --ink: #241f16;
+    --danger: #d3654f;
+
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: var(--navy);
+    color: var(--paper);
+    padding: 28px 16px 48px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 100%;
+  }
+  #rsv-root * { box-sizing: border-box; }
+  #rsv-root .wrap { max-width: 640px; margin: 0 auto; }
+
+  /* ---------- Hero ---------- */
+  #rsv-root .hero {
+    text-align: center;
+    padding: 8px 0 28px;
+    border-bottom: 1px dashed var(--paper-dim);
+    margin-bottom: 28px;
+  }
+  #rsv-root .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+  #rsv-root h1 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 800;
+    font-size: clamp(30px, 7vw, 46px);
+    letter-spacing: 0.01em;
+    margin: 6px 0 8px;
+    line-height: 1.05;
+  }
+  #rsv-root .hero p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--paper-dim);
+  }
+
+  /* ---------- Step label ---------- */
+  #rsv-root .step-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--amber);
+  }
+  #rsv-root .step-label .n {
+    width: 20px; height: 20px;
+    border: 1px solid var(--amber);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  #rsv-root section.step { margin-bottom: 30px; }
+
+  /* ---------- Split-flap board ---------- */
+  #rsv-root .board {
+    display: grid;
+    gap: 8px;
+  }
+  #rsv-root .board.dates {
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  }
+  #rsv-root .board.times {
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  }
+  #rsv-root .board.categories {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  #rsv-root .board.venues {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+  #rsv-root .flap.category {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    text-align: left;
+    padding: 12px 14px;
+    line-height: 1.4;
+  }
+  #rsv-root .flap.category::after { display: none; }
+  #rsv-root .flap.category .main { font-size: 13.5px; font-weight: 500; }
+  #rsv-root .flap.category .top { font-family: 'JetBrains Mono', monospace; font-size: 9px; }
+  #rsv-root .flap {
+    position: relative;
+    background: linear-gradient(180deg, #2c3648 0%, #202839 100%);
+    border: 1px solid #384258;
+    border-radius: 6px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--paper);
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    user-select: none;
+  }
+  #rsv-root .flap::after {
+    content: '';
+    position: absolute;
+    left: 6px; right: 6px; top: 50%;
+    height: 1px;
+    background: rgba(0,0,0,0.35);
+  }
+  #rsv-root .flap .top {
+    display: block;
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+  }
+  #rsv-root .flap .main {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  #rsv-root .flap:hover:not(.disabled) { border-color: var(--amber-dim); transform: translateY(-1px); }
+  #rsv-root .flap:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+  #rsv-root .flap.selected {
+    background: linear-gradient(180deg, var(--amber) 0%, var(--amber-dim) 100%);
+    color: var(--ink);
+    border-color: var(--amber);
+    transform: rotateX(0deg) scale(1.02);
+  }
+  #rsv-root .flap.selected .top { color: var(--ink); opacity: 0.7; }
+  #rsv-root .flap.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  #rsv-root .flap.full .main::after {
+    content: ' 満席';
+    font-size: 9px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #rsv-root .flap { transition: none; }
+  }
+
+  /* ---------- Ticket / form ---------- */
+  #rsv-root .ticket {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    position: relative;
+    padding: 22px 20px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+  }
+  #rsv-root .ticket::before,
+  #rsv-root .ticket::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    background: var(--navy);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #rsv-root .ticket::before { left: -10px; }
+  #rsv-root .ticket::after { right: -10px; }
+  #rsv-root .ticket .perf {
+    border-top: 2px dashed var(--paper-dim);
+    margin: 16px 0;
+  }
+
+  #rsv-root label {
+    display: block;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    opacity: 0.65;
+    margin-bottom: 5px;
+  }
+  #rsv-root .field { margin-bottom: 14px; }
+  #rsv-root input[type=text], #rsv-root input[type=tel] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    border: 1px solid #b9ae95;
+    border-radius: 6px;
+    background: #fbf8f2;
+    color: var(--ink);
+  }
+  #rsv-root input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+  #rsv-root .field-dark label { color: var(--paper-dim); opacity: 1; }
+  #rsv-root .field-dark input[type=text] {
+    background: var(--panel);
+    border-color: #384258;
+    color: var(--paper);
+  }
+  #rsv-root .field-dark input[type=text]::placeholder { color: #6b7488; }
+
+  #rsv-root .picked-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #rsv-root .picked-row .val { font-size: 20px; font-weight: 700; }
+  #rsv-root .picked-row .lab { font-size: 11px; opacity: 0.6; }
+
+  #rsv-root .submit-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 13px;
+    background: var(--ink);
+    color: var(--amber);
+    border: none;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+  #rsv-root .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #rsv-root .submit-btn:hover:not(:disabled) { background: #33291a; }
+
+  #rsv-root .msg {
+    font-size: 12.5px;
+    color: var(--danger);
+    margin-top: 8px;
+    min-height: 16px;
+  }
+
+  #rsv-root .confirm-stamp {
+    text-align: center;
+    padding: 18px 0 4px;
+  }
+  #rsv-root .confirm-stamp .code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    border: 2px solid var(--teal);
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 6px;
+    transform: rotate(-2deg);
+  }
+
+  /* ---------- My bookings ---------- */
+  #rsv-root .my-list { margin-top: 12px; }
+  #rsv-root .stub {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--panel);
+    border: 1px solid #384258;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  #rsv-root .stub .info { line-height: 1.6; }
+  #rsv-root .stub .info b { color: var(--amber); }
+  #rsv-root .stub .cancel {
+    background: none;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #rsv-root .stub .cancel:hover { background: var(--danger); color: var(--paper); }
+  #rsv-root .empty-note {
+    font-size: 12.5px;
+    color: var(--paper-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #rsv-root .notice {
+    font-size: 11px;
+    color: var(--paper-dim);
+    text-align: center;
+    margin-top: 30px;
+    opacity: 0.7;
+  }
+
+  /* ---------- Admin panel ---------- */
+  #rsv-root .admin-panel {
+    margin-top: 40px;
+    border-top: 1px solid #384258;
+    padding-top: 20px;
+  }
+  #rsv-root .admin-toggle {
+    background: none;
+    border: 1px solid #384258;
+    color: var(--paper-dim);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+  #rsv-root .admin-toggle:hover { border-color: var(--teal); color: var(--teal); }
+  #rsv-root .admin-body { margin-top: 16px; }
+  #rsv-root .admin-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  #rsv-root .admin-btn {
+    background: var(--panel);
+    border: 1px solid #384258;
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #rsv-root .admin-btn.primary {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--ink);
+    font-weight: 700;
+  }
+  #rsv-root .admin-btn:hover { filter: brightness(1.1); }
+  #rsv-root .admin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #rsv-root .admin-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #384258;
+    border-radius: 8px;
+  }
+  #rsv-root table.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  #rsv-root table.admin-table th {
+    background: var(--panel);
+    color: var(--amber);
+    text-align: left;
+    padding: 8px 10px;
+    position: sticky;
+    top: 0;
+  }
+  #rsv-root table.admin-table td {
+    padding: 7px 10px;
+    border-top: 1px solid #2c3648;
+    color: var(--paper);
+  }
+  #rsv-root table.admin-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+</style>
+
+<div id="rsv-root">
+  <div class="wrap">
+    <div class="hero">
+      <div class="eyebrow">REFORM EVENT VISIT RESERVATION</div>
+      <h1 id="rsv-title">リフォームイベント<br>来店予約</h1>
+      <p id="rsv-sub">日時を選んでご予約ください。各枠先着順・定員制です。</p>
+    </div>
+
+    <section class="step">
+      <div class="step-label"><span class="n">1</span> 来店日を選ぶ</div>
+      <div class="board dates" id="dateBoard"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-label"><span class="n">2</span> 開催場所を選ぶ</div>
+      <div class="board venues" id="venueBoard"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-label"><span class="n">3</span> 時間を選ぶ</div>
+      <div class="board times" id="timeBoard">
+        <div class="empty-note">先に来店日と開催場所を選んでください</div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-label"><span class="n">4</span> 興味のあるリフォーム項目(複数選択可)</div>
+      <div class="board categories" id="categoryBoard"></div>
+      <div class="field field-dark" style="margin-top:12px;">
+        <label for="otherCategoryInput">その他(自由入力)</label>
+        <input type="text" id="otherCategoryInput" placeholder="例:庭・外構リフォームについて相談したい">
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-label"><span class="n">5</span> ご予約情報</div>
+      <div class="ticket">
+        <div class="picked-row">
+          <div>
+            <div class="lab">来店日時・会場</div>
+            <div class="val" id="pickedDT">未選択</div>
+          </div>
+        </div>
+        <div class="perf"></div>
+        <div class="field">
+          <label for="rsvName">お名前</label>
+          <input type="text" id="rsvName" placeholder="山田 太郎" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="rsvPhone">電話番号</label>
+          <input type="tel" id="rsvPhone" placeholder="090-1234-5678" autocomplete="tel">
+        </div>
+        <button class="submit-btn" id="submitBtn">予約を確定する</button>
+        <div class="msg" id="formMsg"></div>
+        <div id="confirmArea"></div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-label"><span class="n">6</span> マイ予約</div>
+      <div class="my-list" id="myList">
+        <div class="empty-note">読み込み中…</div>
+      </div>
+    </section>
+
+    <div class="notice">※ 予約データは共有ストレージに保存され、空き状況確認のため他の利用者にも定員数のみ反映されます。</div>
+
+    <div class="admin-panel">
+      <button class="admin-toggle" id="adminToggle">▶ 管理者用:予約データ一覧・Excel出力</button>
+      <div class="admin-body" id="adminBody" style="display:none;">
+        <div class="admin-actions">
+          <button class="admin-btn" id="adminRefresh">一覧を更新</button>
+          <button class="admin-btn primary" id="adminExport">Excelでダウンロード(.xlsx)</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="adminTable">
+            <thead>
+              <tr>
+                <th>来店日</th><th>会場</th><th>時間</th><th>氏名</th><th>電話番号</th><th>興味のある項目</th><th>予約番号</th><th>予約日時</th>
+              </tr>
+            </thead>
+            <tbody id="adminTbody">
+              <tr><td colspan="8">「一覧を更新」を押してください</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+(function () {
+  const CAPACITY_PER_SLOT = 4;
+  const EVENT_DATES = [
+    { key: '2026-09-12', label: '9/12(土)' },
+    { key: '2026-09-13', label: '9/13(日)' }
+  ];
+  function buildTimeSlots() {
+    const slots = [];
+    for (let h = 10; h <= 17; h++) {
+      slots.push(String(h).padStart(2,'0') + ':00');
+      if (h < 17) slots.push(String(h).padStart(2,'0') + ':30');
+    }
+    return slots;
+  }
+  const TIME_SLOTS = buildTimeSlots();
+  const VENUES = ['熊本', '八代', '鹿児島', '都城', '鹿屋', '国分'];
+  const CATEGORIES = [
+    '水回りリフォーム',
+    '内装・間取りリフォーム',
+    '外装・屋根リフォーム',
+    '設備・機能向上リフォーム',
+    '全面リフォーム(フルリフォーム・増改築)'
+  ];
+
+  const root = document.getElementById('rsv-root');
+  const dateBoard = document.getElementById('dateBoard');
+  const timeBoard = document.getElementById('timeBoard');
+  const pickedDT = document.getElementById('pickedDT');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMsg = document.getElementById('formMsg');
+  const confirmArea = document.getElementById('confirmArea');
+  const venueBoard = document.getElementById('venueBoard');
+  const categoryBoard = document.getElementById('categoryBoard');
+  const otherCategoryInput = document.getElementById('otherCategoryInput');
+  const myList = document.getElementById('myList');
+  const nameInput = document.getElementById('rsvName');
+  const phoneInput = document.getElementById('rsvPhone');
+
+  let selectedDate = null; // 'YYYY-MM-DD'
+  let selectedVenue = null;
+  let selectedTime = null;
+  let selectedCategories = [];
+
+  function buildDates() {
+    dateBoard.innerHTML = '';
+    EVENT_DATES.forEach(({ key, label }) => {
+      const [m, rest] = label.split('/');
+      const day = rest.replace(/\(.+\)/, '');
+      const weekday = label.match(/\(([^)]+)\)/)[1];
+      const flap = document.createElement('div');
+      flap.className = 'flap';
+      flap.tabIndex = 0;
+      flap.setAttribute('role', 'button');
+      flap.dataset.date = key;
+      flap.innerHTML = `<span class="top">${m}月</span><span class="main">${day}日(${weekday})</span>`;
+      flap.addEventListener('click', () => selectDate(key, flap));
+      flap.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectDate(key, flap); } });
+      dateBoard.appendChild(flap);
+    });
+  }
+
+  function buildVenues() {
+    venueBoard.innerHTML = '';
+    VENUES.forEach(v => {
+      const flap = document.createElement('div');
+      flap.className = 'flap';
+      flap.tabIndex = 0;
+      flap.setAttribute('role', 'button');
+      flap.dataset.venue = v;
+      flap.innerHTML = `<span class="main">${v}</span>`;
+      flap.addEventListener('click', () => selectVenue(v, flap));
+      flap.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectVenue(v, flap); } });
+      venueBoard.appendChild(flap);
+    });
+  }
+
+  async function selectVenue(v, flapEl) {
+    selectedVenue = v;
+    selectedTime = null;
+    [...venueBoard.children].forEach(c => c.classList.remove('selected'));
+    flapEl.classList.add('selected');
+    updatePicked();
+    if (selectedDate) await buildTimes();
+  }
+
+  function buildCategories() {
+    categoryBoard.innerHTML = '';
+    CATEGORIES.forEach(cat => {
+      const flap = document.createElement('div');
+      flap.className = 'flap category';
+      flap.tabIndex = 0;
+      flap.setAttribute('role', 'button');
+      flap.dataset.cat = cat;
+      flap.innerHTML = `<span class="main">${cat}</span>`;
+      flap.addEventListener('click', () => toggleCategory(cat, flap));
+      flap.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategory(cat, flap); } });
+      categoryBoard.appendChild(flap);
+    });
+  }
+
+  function toggleCategory(cat, flapEl) {
+    if (selectedCategories.includes(cat)) {
+      selectedCategories = selectedCategories.filter(c => c !== cat);
+      flapEl.classList.remove('selected');
+    } else {
+      selectedCategories.push(cat);
+      flapEl.classList.add('selected');
+    }
+  }
+
+  async function countBookings(dateKey, venueKey, timeKey) {
+    try {
+      const res = await window.storage.list(`booking:${dateKey}:${venueKey}:${timeKey}:`, true);
+      return res && res.keys ? res.keys.length : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async function selectDate(key, flapEl) {
+    selectedDate = key;
+    selectedTime = null;
+    [...dateBoard.children].forEach(c => c.classList.remove('selected'));
+    flapEl.classList.add('selected');
+    updatePicked();
+    if (selectedVenue) await buildTimes();
+  }
+
+  async function buildTimes() {
+    if (!selectedDate || !selectedVenue) {
+      timeBoard.innerHTML = '<div class="empty-note">先に来店日と開催場所を選んでください</div>';
+      return;
+    }
+    timeBoard.innerHTML = '';
+    for (const t of TIME_SLOTS) {
+      const count = await countBookings(selectedDate, selectedVenue, t);
+      const full = count >= CAPACITY_PER_SLOT;
+      const flap = document.createElement('div');
+      flap.className = 'flap' + (full ? ' disabled full' : '');
+      flap.tabIndex = full ? -1 : 0;
+      flap.setAttribute('role', 'button');
+      flap.dataset.time = t;
+      flap.innerHTML = `<span class="top">残${Math.max(CAPACITY_PER_SLOT - count,0)}枠</span><span class="main">${t}</span>`;
+      if (!full) {
+        flap.addEventListener('click', () => selectTime(t, flap));
+        flap.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTime(t, flap); } });
+      }
+      timeBoard.appendChild(flap);
+    }
+  }
+
+  function selectTime(t, flapEl) {
+    selectedTime = t;
+    [...timeBoard.children].forEach(c => c.classList.remove('selected'));
+    flapEl.classList.add('selected');
+    updatePicked();
+  }
+
+  function updatePicked() {
+    if (selectedDate && selectedVenue && selectedTime) {
+      const [y,m,d] = selectedDate.split('-');
+      pickedDT.textContent = `${m}/${d} ${selectedTime} ／ ${selectedVenue}会場`;
+    } else if (selectedDate || selectedVenue) {
+      const parts = [];
+      if (selectedDate) { const [y,m,d] = selectedDate.split('-'); parts.push(`${m}/${d}`); }
+      if (selectedVenue) parts.push(`${selectedVenue}会場`);
+      parts.push('時間未選択');
+      pickedDT.textContent = parts.join(' ／ ');
+    } else {
+      pickedDT.textContent = '未選択';
+    }
+  }
+
+  function genId() {
+    return (crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g,'').slice(0,10).toUpperCase()
+      : (Date.now().toString(36) + Math.random().toString(36).slice(2,8)).toUpperCase();
+  }
+
+  async function loadMyBookings() {
+    myList.innerHTML = '<div class="empty-note">読み込み中…</div>';
+    try {
+      const idx = await window.storage.get('myBookingIds', false);
+      const ids = idx && idx.value ? JSON.parse(idx.value) : [];
+      if (!ids.length) {
+        myList.innerHTML = '<div class="empty-note">まだ予約はありません</div>';
+        return;
+      }
+      const items = [];
+      for (const id of ids) {
+        try {
+          const rec = await window.storage.get(`myBooking:${id}`, false);
+          if (rec && rec.value) items.push(JSON.parse(rec.value));
+        } catch (e) { /* skip missing */ }
+      }
+      items.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+      if (!items.length) {
+        myList.innerHTML = '<div class="empty-note">まだ予約はありません</div>';
+        return;
+      }
+      myList.innerHTML = '';
+      items.forEach(rec => {
+        const [y,m,d] = rec.date.split('-');
+        const stub = document.createElement('div');
+        stub.className = 'stub';
+        const catText = rec.categories && rec.categories.length ? rec.categories.join(' / ') : '';
+        stub.innerHTML = `<div class="info"><b>${m}/${d} ${rec.time}</b> ／ ${rec.venue || ''}<br>${rec.name} 様${catText ? '<br><span style="opacity:0.65;font-size:11px;">' + catText + '</span>' : ''}</div>
+          <button class="cancel" data-id="${rec.id}" data-date="${rec.date}" data-venue="${rec.venue}" data-time="${rec.time}">キャンセル</button>`;
+        stub.querySelector('.cancel').addEventListener('click', () => cancelBooking(rec.id, rec.date, rec.venue, rec.time));
+        myList.appendChild(stub);
+      });
+    } catch (e) {
+      myList.innerHTML = '<div class="empty-note">読み込みに失敗しました</div>';
+    }
+  }
+
+  async function cancelBooking(id, date, venue, time) {
+    try {
+      await window.storage.delete(`booking:${date}:${venue}:${time}:${id}`, true);
+      await window.storage.delete(`myBooking:${id}`, false);
+      const idx = await window.storage.get('myBookingIds', false).catch(() => null);
+      const ids = idx && idx.value ? JSON.parse(idx.value) : [];
+      const next = ids.filter(x => x !== id);
+      await window.storage.set('myBookingIds', JSON.stringify(next), false);
+      loadMyBookings();
+      if (selectedDate === date && selectedVenue === venue) buildTimes();
+    } catch (e) {
+      console.error('cancel failed', e);
+    }
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    formMsg.textContent = '';
+    confirmArea.innerHTML = '';
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const otherText = otherCategoryInput.value.trim();
+    const finalCategories = selectedCategories.slice();
+    if (otherText) finalCategories.push(`その他: ${otherText}`);
+    if (!selectedDate || !selectedVenue || !selectedTime) { formMsg.textContent = '来店日・開催場所・時間を選択してください。'; return; }
+    if (!finalCategories.length) { formMsg.textContent = '興味のあるリフォーム項目を1つ以上選択するか、その他欄に入力してください。'; return; }
+    if (!name) { formMsg.textContent = 'お名前を入力してください。'; return; }
+    if (!/^[0-9\-+()\s]{8,15}$/.test(phone)) { formMsg.textContent = '電話番号の形式を確認してください。'; return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信中…';
+    try {
+      const count = await countBookings(selectedDate, selectedVenue, selectedTime);
+      if (count >= CAPACITY_PER_SLOT) {
+        formMsg.textContent = 'この時間枠は満席になりました。別の時間をお選びください。';
+        await buildTimes();
+        submitBtn.disabled = false;
+        submitBtn.textContent = '予約を確定する';
+        return;
+      }
+      const id = genId();
+      const record = { id, name, phone, date: selectedDate, venue: selectedVenue, time: selectedTime, categories: finalCategories, createdAt: new Date().toISOString() };
+      const sharedRes = await window.storage.set(`booking:${selectedDate}:${selectedVenue}:${selectedTime}:${id}`, JSON.stringify(record), true);
+      if (!sharedRes) throw new Error('shared save failed');
+      await window.storage.set(`myBooking:${id}`, JSON.stringify(record), false);
+      const idxRes = await window.storage.get('myBookingIds', false).catch(() => null);
+      const ids = idxRes && idxRes.value ? JSON.parse(idxRes.value) : [];
+      ids.push(id);
+      await window.storage.set('myBookingIds', JSON.stringify(ids), false);
+
+      const [y,m,d] = selectedDate.split('-');
+      confirmArea.innerHTML = `<div class="confirm-stamp">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);margin-bottom:8px;">RESERVATION CONFIRMED</div>
+          <div class="code">${id}</div>
+          <div style="margin-top:8px;font-size:13px;">${m}/${d} ${selectedTime} ／ ${selectedVenue}会場 ／ ${name} 様</div>
+          <div style="margin-top:6px;font-size:12px;color:var(--ink);opacity:0.7;">${record.categories.join(' / ')}</div>
+        </div>`;
+      nameInput.value = '';
+      phoneInput.value = '';
+      otherCategoryInput.value = '';
+      selectedCategories = [];
+      [...categoryBoard.children].forEach(c => c.classList.remove('selected'));
+      await buildTimes();
+      await loadMyBookings();
+    } catch (e) {
+      console.error(e);
+      formMsg.textContent = '予約の保存に失敗しました: ' + (e && e.message ? e.message : String(e));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '予約を確定する';
+    }
+  });
+
+  buildDates();
+  buildVenues();
+  buildCategories();
+  loadMyBookings();
+
+  // ---------- Admin panel ----------
+  const adminToggle = document.getElementById('adminToggle');
+  const adminBody = document.getElementById('adminBody');
+  const adminRefresh = document.getElementById('adminRefresh');
+  const adminExport = document.getElementById('adminExport');
+  const adminTbody = document.getElementById('adminTbody');
+  let allBookingsCache = [];
+
+  adminToggle.addEventListener('click', () => {
+    const open = adminBody.style.display !== 'none';
+    adminBody.style.display = open ? 'none' : 'block';
+    adminToggle.textContent = (open ? '▶' : '▼') + ' 管理者用:予約データ一覧・Excel出力';
+  });
+
+  async function fetchAllBookings() {
+    adminTbody.innerHTML = '<tr><td colspan="8">読み込み中…</td></tr>';
+    try {
+      const idx = await window.storage.list('booking:', true);
+      const keys = idx && idx.keys ? idx.keys : [];
+      const records = [];
+      for (const k of keys) {
+        try {
+          const res = await window.storage.get(k, true);
+          if (res && res.value) records.push(JSON.parse(res.value));
+        } catch (e) { /* skip unreadable key */ }
+      }
+      records.sort((a,b) => (a.date+a.venue+a.time).localeCompare(b.date+b.venue+b.time));
+      allBookingsCache = records;
+      renderAdminTable(records);
+    } catch (e) {
+      adminTbody.innerHTML = '<tr><td colspan="8">読み込みに失敗しました</td></tr>';
+    }
+  }
+
+  function renderAdminTable(records) {
+    if (!records.length) {
+      adminTbody.innerHTML = '<tr><td colspan="8">予約はまだありません</td></tr>';
+      return;
+    }
+    adminTbody.innerHTML = records.map(r => `
+      <tr>
+        <td>${r.date || ''}</td>
+        <td>${r.venue || ''}</td>
+        <td>${r.time || ''}</td>
+        <td>${escapeHtml(r.name || '')}</td>
+        <td>${escapeHtml(r.phone || '')}</td>
+        <td>${escapeHtml((r.categories || []).join(' / '))}</td>
+        <td>${r.id || ''}</td>
+        <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('ja-JP') : ''}</td>
+      </tr>`).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  adminRefresh.addEventListener('click', fetchAllBookings);
+
+  adminExport.addEventListener('click', async () => {
+    if (typeof XLSX === 'undefined') {
+      alert('Excel出力ライブラリの読み込みに失敗しました。通信環境を確認してもう一度お試しください。');
+      return;
+    }
+    adminExport.disabled = true;
+    adminExport.textContent = '準備中…';
+    try {
+      if (!allBookingsCache.length) await fetchAllBookings();
+      const rows = allBookingsCache.map(r => ({
+        '来店日': r.date || '',
+        '会場': r.venue || '',
+        '時間': r.time || '',
+        '氏名': r.name || '',
+        '電話番号': r.phone || '',
+        '興味のある項目': (r.categories || []).join(' / '),
+        '予約番号': r.id || '',
+        '予約日時': r.createdAt ? new Date(r.createdAt).toLocaleString('ja-JP') : ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [{wch:12},{wch:10},{wch:8},{wch:14},{wch:16},{wch:34},{wch:14},{wch:20}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '予約一覧');
+      const stamp = new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb, `reform-event-reservations_${stamp}.xlsx`);
+    } catch (e) {
+      console.error(e);
+      alert('Excelファイルの作成に失敗しました。');
+    } finally {
+      adminExport.disabled = false;
+      adminExport.textContent = 'Excelでダウンロード(.xlsx)';
+    }
+  });
+})();
+</script>
